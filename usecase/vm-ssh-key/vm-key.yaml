@@ -1,0 +1,26 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  name: myvmi
+spec:
+  terminationGracePeriodSeconds: 5
+  domain:
+    resources:
+      requests:
+        memory: 64M
+    devices:
+      disks:
+      - name: containerdisk
+        disk:
+          bus: virtio
+      - name: cloudinitdisk
+        disk:
+          bus: virtio
+  volumes:
+    - name: containerdisk
+      containerDisk:
+        image: kubevirt/cirros-container-disk-demo:latest
+    - name: cloudinitdisk
+      cloudInitNoCloud:
+        userDataBase64: $(cat startup-script|base64 -w0) 
+
