@@ -1,0 +1,45 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachine
+metadata:
+  name: vm-multi-nic 
+spec:
+  #runStrategy: RerunOnFailure 
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/size: small
+        kubevirt.io/domain: vm-multi-nic
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+            - masquerade: {}
+              model: virtio
+              name: pod-net
+            - name: vm-multi-nic 
+              bridge: {} 
+        resources:
+          requests:
+            memory: 664M
+      networks:
+      - name: pod-net
+        pod: {}
+      - name: vm-multi-nic 
+        multus:
+          networkName: default/bridge-test 
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: quay.io/kubevirt/cirros-container-disk-demo
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            secretRef:
+              name: my-vmi-secret 
