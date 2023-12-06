@@ -1,0 +1,16 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: fedora-cloud-base-1
+  namespace: vm-images
+spec:
+  source:
+    http:
+      url: "ttp://your-web-server-here/images/Fedora-Cloud-Base-XX-X.X.x86_64.qcow2"
+  storage:
+    accessModes: 
+      - ReadWriteOnce
+    storageClassName: managed-nfs-storage
+    resources:
+      requests:
+        storage: 24Gi

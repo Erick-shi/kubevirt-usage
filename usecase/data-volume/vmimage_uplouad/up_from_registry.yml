@@ -1,0 +1,18 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: virros-local-openstack 
+  namespace: vm-images
+spec:
+  source:
+    registry:
+      secretRef: "my-secret"
+      #certConfigMap: "docker-secret"
+      url: "docker://registry.ibm.com:5000/cirros-openstack:v1"
+  storage:
+    accessModes: 
+      - ReadWriteOnce
+    storageClassName: managed-nfs-storage
+    resources:
+      requests:
+        storage: 2Gi
