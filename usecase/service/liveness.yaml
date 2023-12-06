@@ -1,0 +1,57 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/vm: fedora-cloud-base
+    app: nginx 
+  name: fedora-cloud-base 
+  namespace: default
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: nginx-provisioner
+    spec:
+      domain:
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: datavolumedisk2
+          - disk:
+              bus: virtio
+            name: cloudinitdisk
+          interfaces:
+          - name: default
+            masquerade: {}
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 4
+      networks:
+      - name: default
+        pod: {}
+      volumes:
+      - dataVolume:
+          name: fedora-cloud-base-2
+        name: datavolumedisk2 
+      - cloudInitNoCloud:
+          secretRef:
+            name: liveness-secret
+        name: cloudinitdisk
+  dataVolumeTemplates:
+  - metadata:
+      name: fedora-cloud-base-2 
+    spec:
+      storage:
+        storageClassName: managed-nfs-storage
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 24Gi
+      source:
+        pvc:
+          namespace: vm-images
+          name: fedora-cloud-base-1 
