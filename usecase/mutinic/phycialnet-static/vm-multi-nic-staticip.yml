@@ -1,0 +1,68 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/vm: nginx-provisioner
+  name: cirros-openstack-vm-static-ip 
+  namespace: default
+spec:
+  running: true
+  template:
+    metadata:
+      #annotations:
+      #k8s.v1.cni.cncf.io/networks: '[{ "name": "static","ips": [ "172.16.32.226/24" ] }]'
+      labels:
+        kubevirt.io/vm: nginx-provisioner
+    spec:
+      domain:
+        devices:
+          disks:
+          - disk:
+              bus: virtio
+            name: datavolumedisk3
+          - disk:
+              bus: virtio
+            name: cloudinitdisk
+          interfaces:
+          - name: vm-multi-nic 
+            bridge: {} 
+        resources:
+          requests:
+            memory: 1Gi
+      networks:
+      - name: vm-multi-nic
+        multus:
+          default: true
+          networkName: default/static
+      volumes:
+      - dataVolume:
+          name: fedora-nginx3
+        name: datavolumedisk3 
+      - cloudInitNoCloud:
+          networkData: |
+            version: 2
+            ethernets:
+              eth0:
+                addresses: [ 172.16.32.226/24 ]
+          userData: |
+            #!/bin/sh
+            # removing instances ensures cloud init will execute again after reboot
+            mkdir ~/123
+            sudo echo -e "zlinux\nzlinux" | passwd root
+            rm -rf /var/lib/cloud/instances
+        name: cloudinitdisk
+  dataVolumeTemplates:
+  - metadata:
+      name: fedora-nginx3
+    spec:
+      storage:
+        storageClassName: managed-nfs-storage
+        accessModes:
+        - ReadWriteMany
+        resources:
+          requests:
+            storage: 24Gi
+      source: # clone from source dv
+        pvc:
+          namespace: vm-images
+          name: fedora-cloud-base-1 # the dv need prepare 
